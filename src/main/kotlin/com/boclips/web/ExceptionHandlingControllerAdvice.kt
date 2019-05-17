@@ -1,12 +1,17 @@
 package com.boclips.web
 
 import mu.KLogging
+import org.springframework.http.HttpRequest
 import org.springframework.http.HttpStatus
+import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.context.request.WebRequest
+import org.springframework.web.util.UriComponents
+import java.time.OffsetDateTime
 
 @ControllerAdvice
 class ExceptionHandlingControllerAdvice {
@@ -14,12 +19,19 @@ class ExceptionHandlingControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(
-        ex: MethodArgumentNotValidException
+        ex: MethodArgumentNotValidException,
+        webRequest: WebRequest
     ): ResponseEntity<*> {
         logger.info { "Invalid request: $ex" }
         val errors = ex.bindingResult.allErrors.map { error ->
             val fieldName = (error as FieldError).field
-            ApiErrorResource(field = fieldName, message = error.getDefaultMessage().orEmpty())
+            ApiErrorResource(
+                    path = webRequest.getDescription(false).substringAfter("uri="),
+                    timestamp = OffsetDateTime.now().toString(),
+                    status = 400,
+                    error = "Invalid field: $fieldName",
+                    message = error.getDefaultMessage().orEmpty()
+            )
         }
         return ResponseEntity(ApiErrorsResource(errors = errors), HttpStatus.BAD_REQUEST)
     }

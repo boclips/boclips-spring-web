@@ -1,3 +1,9 @@
 package com.boclips.web
 
-data class ApiErrorResource(val field: String, val message: String)
+data class ApiErrorResource(
+        val path: String,
+        val status: Int,
+        val timestamp: String,
+        val error: String,
+        val message: String
+)

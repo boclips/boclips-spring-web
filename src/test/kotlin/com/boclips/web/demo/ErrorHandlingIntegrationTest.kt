@@ -10,6 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
@@ -45,7 +46,11 @@ class ErrorHandlingIntegrationTest {
                         .content("""{}""")
         )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].field", Matchers.equalTo("mandatoryProperty")))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].timestamp", Matchers.notNullValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].status", Matchers.equalTo(400)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].path", Matchers.equalTo("/validate")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].error", Matchers.equalTo("Invalid field: mandatoryProperty")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors[0].message", Matchers.equalTo("must not be null")))
     }
 }
