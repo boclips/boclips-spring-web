@@ -1,3 +1,3 @@
 package com.boclips.web.exceptions
 
-class InvalidRequestApiException(exceptionDetails: ExceptionDetails) : BoclipsApiException(exceptionDetails)
+open class InvalidRequestApiException(exceptionDetails: ExceptionDetails) : BoclipsApiException(exceptionDetails)
