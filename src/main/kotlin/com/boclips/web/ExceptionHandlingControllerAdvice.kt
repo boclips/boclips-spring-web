@@ -1,5 +1,6 @@
 package com.boclips.web
 
+import com.boclips.web.exceptions.BoclipsApiException
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -8,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
+import sun.security.pkcs11.wrapper.Constants
 import java.time.OffsetDateTime
 
 @ControllerAdvice
@@ -16,21 +18,40 @@ class ExceptionHandlingControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(
-        ex: MethodArgumentNotValidException,
-        webRequest: WebRequest
+            ex: MethodArgumentNotValidException,
+            webRequest: WebRequest
+    ): ResponseEntity<*> {
+        logger.info { "Invalid request - due to validation errors: $ex" }
+        val errorMessage = ex.bindingResult.allErrors.map { error ->
+            val fieldName = (error as FieldError).field
+            "- $fieldName ${error.getDefaultMessage().orEmpty()}"
+        }.joinToString(Constants.NEWLINE)
+
+        val error = ApiErrorResource(
+                path = webRequest.getDescription(false).substringAfter("uri="),
+                timestamp = OffsetDateTime.now().toString(),
+                status = 400,
+                error = "Invalid field/s",
+                message = errorMessage
+        )
+        return ResponseEntity(error, HttpStatus.BAD_REQUEST)
+    }
+
+
+    @ExceptionHandler(BoclipsApiException::class)
+    fun handleBoclipsApiExceptions(
+            ex: BoclipsApiException,
+            webRequest: WebRequest
     ): ResponseEntity<*> {
         logger.info { "Invalid request: $ex" }
-        val errors = ex.bindingResult.allErrors.map { error ->
-            val fieldName = (error as FieldError).field
-            ApiErrorResource(
-                    path = webRequest.getDescription(false).substringAfter("uri="),
-                    timestamp = OffsetDateTime.now().toString(),
-                    status = 400,
-                    error = "Invalid field: $fieldName",
-                    message = error.getDefaultMessage().orEmpty()
-            )
-        }
-        return ResponseEntity(ApiErrorsResource(errors = errors), HttpStatus.BAD_REQUEST)
+        val error = ApiErrorResource(
+                path = webRequest.getDescription(false).substringAfter("uri="),
+                timestamp = OffsetDateTime.now().toString(),
+                status = ex.exceptionDetails.status.value(),
+                error = ex.exceptionDetails.error,
+                message = ex.exceptionDetails.message
+        )
+        return ResponseEntity(error, ex.exceptionDetails.status)
     }
 }
 
