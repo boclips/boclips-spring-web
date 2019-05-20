@@ -21,7 +21,6 @@ import javax.validation.constraints.NotNull
 
 @RestController
 class DummyController {
-
     @PostMapping("/validate")
     fun posting(@RequestBody @Valid validatingGarbage: ValidatingGarbage) {}
 }
