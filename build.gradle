@@ -73,4 +73,6 @@ dependencyCheck {
     analyzers {
         assemblyEnabled = false
     }
+
+    outputDirectory = "security-report"
 }
