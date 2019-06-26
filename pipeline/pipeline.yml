@@ -34,7 +34,7 @@ resources:
   type: git
   source:
     branch: master
-    private_key: ((boclips-spring-web-repo-key))
+    private_key: ((boclips-spring-web.repo-key))
     uri: git@github.com:boclips/boclips-spring-web.git
 
 - name: once-per-weekday
