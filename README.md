@@ -14,4 +14,4 @@ compile 'com.github.knowledgemotion:boclips-spring-web:<tag>'
 ```
 
 ## Versions
-Check different available [versions](https://jitpack.io/#knowledgemotion/boclips-spring-web).
+Check different available [versions](https://jitpack.io/#boclips/boclips-spring-web).
