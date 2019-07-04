@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -26,16 +27,27 @@ import javax.validation.Valid
 import javax.validation.constraints.NotNull
 
 @RestController
-class DummyController {
+class DummyController(val dummyService: DummyService) {
 
     @PostMapping("/validate")
     fun posting(@RequestBody @Valid validatingGarbage: ValidatingGarbage) {}
+
+    @PostMapping("/validate-downstream")
+    fun morePosting(@RequestBody validatingGarbage: ValidatingGarbage) = dummyService.validate(validatingGarbage)
 
     @GetMapping("/not-found")
     fun notFound(): Nothing = throw ResourceNotFoundApiException("this thing", "cannot be found dude")
 
     @GetMapping("/invalid")
     fun invalid(): Nothing = throw InvalidRequestApiException(ExceptionDetails("error", "message", HttpStatus.CONFLICT))
+}
+
+@Service
+@Validated
+class DummyService {
+    fun validate(@Valid validatingGarbage: ValidatingGarbage) {
+
+    }
 }
 
 data class ValidatingGarbage(
@@ -54,7 +66,7 @@ class ErrorHandlingIntegrationTest {
     lateinit var mockMvc: MockMvc
 
     @Test
-    fun `enables error handling for javax validation`() {
+    fun `enables error handling for mvc javax validation`() {
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/validate").contentType(MediaType.APPLICATION_JSON)
                         .content("""{}""")
@@ -64,6 +76,24 @@ class ErrorHandlingIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp", Matchers.notNullValue()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status", Matchers.equalTo(400)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.path", Matchers.equalTo("/validate")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error", Matchers.equalTo("Invalid field/s")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.allOf(
+                        Matchers.containsString("- mandatoryProperty must not be null"),
+                        Matchers.containsString("- otherMandatoryProperty must not be null")
+                )))
+    }
+
+    @Test
+    fun `enables error handling for downstream javax validation`() {
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/validate-downstream").contentType(MediaType.APPLICATION_JSON)
+                        .content("""{}""")
+        )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp", Matchers.notNullValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status", Matchers.equalTo(400)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path", Matchers.equalTo("/validate-downstream")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error", Matchers.equalTo("Invalid field/s")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.allOf(
                         Matchers.containsString("- mandatoryProperty must not be null"),

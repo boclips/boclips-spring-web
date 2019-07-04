@@ -39,6 +39,8 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:1.4.9")
 
     compileOnly('org.springframework:spring-webmvc:5.1.5.RELEASE')
+    compileOnly('javax.validation:validation-api:2.0.1.Final')
+
 
     testCompile("org.springframework.boot:spring-boot-starter-test:2.1.0.RELEASE") {
         exclude module: ['junit', 'mockito-core']

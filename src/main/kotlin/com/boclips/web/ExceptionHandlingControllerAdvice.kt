@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import sun.security.pkcs11.wrapper.Constants
 import java.time.OffsetDateTime
+import javax.validation.ConstraintViolationException
 
 @ControllerAdvice
 class ExceptionHandlingControllerAdvice {
@@ -27,6 +28,26 @@ class ExceptionHandlingControllerAdvice {
             "- $fieldName ${error.getDefaultMessage().orEmpty()}"
         }.joinToString(Constants.NEWLINE)
 
+        val error = ApiErrorResource(
+                path = webRequest.getDescription(false).substringAfter("uri="),
+                timestamp = OffsetDateTime.now().toString(),
+                status = 400,
+                error = "Invalid field/s",
+                message = errorMessage
+        )
+        return ResponseEntity(error, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleValidationExceptions(
+            ex: ConstraintViolationException,
+            webRequest: WebRequest
+    ): ResponseEntity<*> {
+        logger.info { "Invalid request - due to validation errors: $ex" }
+        val errorMessage = ex.constraintViolations.map { error ->
+            val fieldName = error.propertyPath.toString().substringAfterLast(".")
+            "- $fieldName ${error.message.orEmpty()}"
+        }.joinToString(Constants.NEWLINE)
         val error = ApiErrorResource(
                 path = webRequest.getDescription(false).substringAfter("uri="),
                 timestamp = OffsetDateTime.now().toString(),
