@@ -128,4 +128,17 @@ class ErrorHandlingIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error", Matchers.equalTo("error")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.equalTo("message")))
     }
+
+    @Test
+    fun `returns JSON despite of the Accept header`() {
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/invalid").accept(MediaType.TEXT_MARKDOWN)
+        )
+                .andExpect(MockMvcResultMatchers.header().stringValues("Content-Type", "application/json"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp", Matchers.notNullValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status", Matchers.equalTo(409)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path", Matchers.equalTo("/invalid")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error", Matchers.equalTo("error")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.equalTo("message")))
+    }
 }

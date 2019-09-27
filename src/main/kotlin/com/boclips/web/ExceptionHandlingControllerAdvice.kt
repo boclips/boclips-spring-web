@@ -2,6 +2,7 @@ package com.boclips.web
 
 import com.boclips.web.exceptions.BoclipsApiException
 import mu.KLogging
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.FieldError
@@ -72,7 +73,11 @@ class ExceptionHandlingControllerAdvice {
                 error = ex.exceptionDetails.error,
                 message = ex.exceptionDetails.message
         )
-        return ResponseEntity(error, ex.exceptionDetails.status)
+        return ResponseEntity(
+                error,
+                HttpHeaders().apply { put("Content-Type", listOf("application/json")) },
+                ex.exceptionDetails.status
+        )
     }
 }
 
