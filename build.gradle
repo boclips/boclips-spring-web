@@ -8,6 +8,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+        classpath('org.owasp:dependency-check-gradle:5.3.2')
     }
 }
 
@@ -66,6 +67,8 @@ compileTestKotlin {
 }
 
 dependencyCheck {
+    apply plugin: 'org.owasp.dependencycheck'
+
     failBuildOnCVSS = 7 // Fail on high severity or greater
 
     data {
@@ -75,6 +78,7 @@ dependencyCheck {
     analyzers {
         assemblyEnabled = false
     }
+    suppressionFile = './dependency-check-suppressions.xml'
 
     outputDirectory = "security-report"
 }
