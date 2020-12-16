@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlinVersion = '1.4.0'
+        kotlinVersion = '1.4.21'
     }
     repositories {
         mavenCentral()
@@ -38,9 +38,9 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile("io.github.microutils:kotlin-logging:1.4.9")
 
-    runtime ('org.jetbrains.kotlin:kotlin-reflect:1.4.0')
+    runtime ('org.jetbrains.kotlin:kotlin-reflect')
 
-    compileOnly('org.springframework:spring-webmvc:5.2.4.RELEASE')
+    compileOnly('org.springframework:spring-webmvc:5.2.12.RELEASE')
     compileOnly('javax.validation:validation-api:2.0.1.Final')
 
     testCompile("org.springframework.boot:spring-boot-starter-test:2.2.5.RELEASE") {

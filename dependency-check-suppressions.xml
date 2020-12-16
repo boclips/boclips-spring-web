@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-    <suppress until="2020-12-01">
+    <suppress until="2021-01-08">
         <notes>
             Matching 1.4.0 even though fixed in 1.4.0.
         </notes>
